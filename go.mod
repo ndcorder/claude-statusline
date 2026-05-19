@@ -1,3 +1,3 @@
-module github.com/kexxt/claude-statusline
+module github.com/ndcorder/claude-statusline
 
 go 1.22

@@ -18,7 +18,7 @@ cyan@host ~/project | Opus 4.6 (1M context) | main ↑2 +15/-3 (2f) | ███�
 ### From source
 
 ```bash
-git clone https://github.com/kexxt/claude-statusline.git
+git clone https://github.com/ndcorder/claude-statusline.git
 cd claude-statusline
 make install
 ```
@@ -28,7 +28,7 @@ This builds the binary and copies it to `~/.claude/claude-statusline`.
 ### With `go install`
 
 ```bash
-go install github.com/kexxt/claude-statusline@latest
+go install github.com/ndcorder/claude-statusline@latest
 ```
 
 Then copy the binary to `~/.claude/`:
