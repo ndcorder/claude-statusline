@@ -39,10 +39,7 @@ func loadSession() Session {
 }
 
 func (s *Session) save() {
-	data, err := json.Marshal(s)
-	if err != nil {
-		return
-	}
+	data, _ := json.Marshal(s)
 	_ = os.WriteFile(sessionPath, data, 0644)
 }
 
@@ -113,9 +110,6 @@ func loadHistoryAvg() *HistoryAvg {
 	var count int
 	for _, line := range lines {
 		parts := strings.SplitN(line, "|", 2)
-		if len(parts) < 1 {
-			continue
-		}
 		var c float64
 		if _, err := fmt.Sscanf(parts[0], "%f", &c); err == nil {
 			totalCost += c

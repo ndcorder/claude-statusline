@@ -257,13 +257,7 @@ func run(r io.Reader, w io.Writer) {
 			sparkChars := []rune{'▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'}
 			var spark strings.Builder
 			for _, v := range hist {
-				idx := v * 7 / 100
-				if idx > 7 {
-					idx = 7
-				}
-				if idx < 0 {
-					idx = 0
-				}
+				idx := min(max(v*7/100, 0), 7)
 				spark.WriteRune(sparkChars[idx])
 			}
 			parts = append(parts, Green+spark.String()+Reset)

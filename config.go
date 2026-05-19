@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 )
 
-var configPath string
+var (
+	configPath string
+	userHomeDir = os.UserHomeDir
+)
 
 type Config struct {
 	UserHost       bool             `json:"user_host"`
@@ -127,7 +130,7 @@ func loadConfig() Config {
 
 	path := configPath
 	if path == "" {
-		home, err := os.UserHomeDir()
+		home, err := userHomeDir()
 		if err != nil {
 			return c
 		}
