@@ -68,7 +68,7 @@ func (s *Session) update(totalIn int64, cacheRead, cacheCreate, inputTokens int6
 		s.CumIT += inputTokens
 		s.TurnCount++
 		s.SparkHist = append(s.SparkHist, reqHit)
-		if len(s.SparkHist) > 8 {
+		if len(s.SparkHist) > 32 {
 			s.SparkHist = s.SparkHist[len(s.SparkHist)-8:]
 		}
 	}

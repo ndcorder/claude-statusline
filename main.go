@@ -16,6 +16,8 @@ func main() {
 }
 
 func run(r io.Reader, w io.Writer) {
+	cfg = loadConfig()
+
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return
@@ -67,31 +69,56 @@ func run(r io.Reader, w io.Writer) {
 		sess.save()
 	}
 
+	fmtTok := func(n int64) string {
+		return fmtTokensUnit(n, cfg.Tokens.Format)
+	}
+
+	addSep := func(b *strings.Builder) {
+		if b.Len() > 0 {
+			b.WriteString(Sep)
+		}
+	}
+
 	// ── LINE 1 ──
 
 	var l1 strings.Builder
-	l1.WriteString(Cyan + username + "@" + hostname + Reset + " " + Yellow + cwd + Reset)
 
-	if model != "" {
-		l1.WriteString(Sep + Magenta + model + Reset)
+	if cfg.UserHost {
+		l1.WriteString(Cyan + username + "@" + hostname + Reset)
+	}
+	if cfg.Cwd {
+		if l1.Len() > 0 {
+			l1.WriteString(" ")
+		}
+		l1.WriteString(Yellow + cwd + Reset)
 	}
 
-	if gi := getGitInfo(rawCwd); gi != nil {
-		l1.WriteString(Sep + Blue + gi.Branch + Reset)
-		if gi.Ahead > 0 {
-			l1.WriteString(" " + Green + "↑" + itoa(gi.Ahead) + Reset)
-		}
-		if gi.Behind > 0 {
-			l1.WriteString(" " + Red + "↓" + itoa(gi.Behind) + Reset)
-		}
-		if gi.Changed > 0 {
-			l1.WriteString(" " + Green + "+" + itoa(gi.Added) + Reset +
-				Dim + "/" + Reset + Red + "-" + itoa(gi.Removed) + Reset +
-				" " + Dim + "(" + itoa(gi.Changed) + "f)" + Reset)
+	if cfg.Model && model != "" {
+		addSep(&l1)
+		l1.WriteString(Magenta + model + Reset)
+	}
+
+	if cfg.Git.Enabled {
+		if gi := getGitInfo(rawCwd); gi != nil {
+			addSep(&l1)
+			l1.WriteString(Blue + gi.Branch + Reset)
+			if cfg.Git.AheadBehind {
+				if gi.Ahead > 0 {
+					l1.WriteString(" " + Green + "↑" + itoa(gi.Ahead) + Reset)
+				}
+				if gi.Behind > 0 {
+					l1.WriteString(" " + Red + "↓" + itoa(gi.Behind) + Reset)
+				}
+			}
+			if cfg.Git.Changes && gi.Changed > 0 {
+				l1.WriteString(" " + Green + "+" + itoa(gi.Added) + Reset +
+					Dim + "/" + Reset + Red + "-" + itoa(gi.Removed) + Reset +
+					" " + Dim + "(" + itoa(gi.Changed) + "f)" + Reset)
+			}
 		}
 	}
 
-	if hasRemaining {
+	if cfg.ContextBar.Enabled && hasRemaining {
 		remainInt := int(remaining)
 		usedInt := 100 - remainInt
 		var ctxColor string
@@ -103,74 +130,85 @@ func run(r io.Reader, w io.Writer) {
 		default:
 			ctxColor = Green
 		}
-		const barWidth = 10
+		barWidth := cfg.ContextBar.Width
+		if barWidth <= 0 {
+			barWidth = 10
+		}
 		filled := usedInt * barWidth / 100
 		empty := barWidth - filled
 		bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
-		l1.WriteString(Sep + ctxColor + bar + Reset + " " + Dim + itoa(remainInt) + "%" + Reset)
+		addSep(&l1)
+		l1.WriteString(ctxColor + bar + Reset + " " + Dim + itoa(remainInt) + "%" + Reset)
 	}
 
-	if costUSD > 0 {
-		l1.WriteString(Sep + Dim + "$" + Reset + Yellow + fmt.Sprintf("%.2f", costUSD) + Reset)
-		if cfg.CostVelocity && durationMS > 60000 {
-			costHr := costUSD * 3600000 / durationMS
-			l1.WriteString(Dim + fmt.Sprintf("@$%.2f/hr", costHr) + Reset)
+	if cfg.Cost.Enabled && costUSD > 0 {
+		addSep(&l1)
+		precision := cfg.Cost.Precision
+		if precision < 0 {
+			precision = 2
+		}
+		fmtStr := fmt.Sprintf("%%.%df", precision)
+		l1.WriteString(Dim + "$" + Reset + Yellow + fmt.Sprintf(fmtStr, costUSD) + Reset)
+		if cfg.Cost.Velocity && durationMS > 60000 {
+			switch cfg.Cost.VelocityUnit {
+			case "minute":
+				costMin := costUSD * 60000 / durationMS
+				l1.WriteString(Dim + fmt.Sprintf("@$%.2f/min", costMin) + Reset)
+			default:
+				costHr := costUSD * 3600000 / durationMS
+				l1.WriteString(Dim + fmt.Sprintf("@$%.2f/hr", costHr) + Reset)
+			}
 		}
 	}
 
-	if durationMS > 0 {
-		totalSecs := int(durationMS) / 1000
-		var timeStr string
-		switch {
-		case totalSecs >= 3600:
-			timeStr = fmt.Sprintf("%dh%dm", totalSecs/3600, (totalSecs%3600)/60)
-		case totalSecs >= 60:
-			timeStr = fmt.Sprintf("%dm%ds", totalSecs/60, totalSecs%60)
-		default:
-			timeStr = fmt.Sprintf("%ds", totalSecs)
-		}
-		l1.WriteString(Sep + Dim + timeStr + Reset)
+	if cfg.Duration.Enabled && durationMS > 0 {
+		addSep(&l1)
+		l1.WriteString(Dim + fmtDuration(durationMS, cfg.Duration.Format) + Reset)
 	}
 
-	fmt.Fprintln(w, l1.String())
+	if l1.Len() > 0 {
+		fmt.Fprintln(w, l1.String())
+	}
 
 	// ── LINE 2 ──
 
 	var parts []string
 
-	if totalIn > 0 && totalOut > 0 {
+	if cfg.Tokens.Enabled && totalIn > 0 && totalOut > 0 {
 		parts = append(parts, Dim+"tok"+Reset+" "+
-			Cyan+"↓"+fmtTokens(totalIn)+Reset+" "+
-			Magenta+"↑"+fmtTokens(totalOut)+Reset)
+			Cyan+"↓"+fmtTok(totalIn)+Reset+" "+
+			Magenta+"↑"+fmtTok(totalOut)+Reset)
 	}
 
-	if cfg.CumulativeCache {
-		sTotalCache := sess.CumCR + sess.CumCC + sess.CumIT
-		if sTotalCache > 0 {
-			sHitPct := int(sess.CumCR * 100 / sTotalCache)
-			sHitColor := colorPct(100 - sHitPct)
-			parts = append(parts, Dim+"cache"+Reset+" "+
-				sHitColor+itoa(sHitPct)+"%"+Reset+Dim+"hit"+Reset+" "+
-				Green+"r:"+fmtTokens(sess.CumCR)+Reset+
-				Dim+"/"+Reset+
-				Yellow+"w:"+fmtTokens(sess.CumCC)+Reset)
-		}
-	} else {
-		reqTotal := cacheRead + cacheCreate + inputTokens
-		if reqTotal > 0 {
-			hitPct := int(cacheRead * 100 / reqTotal)
-			hitColor := colorPct(100 - hitPct)
-			parts = append(parts, Dim+"cache"+Reset+" "+
-				hitColor+itoa(hitPct)+"%"+Reset+Dim+"hit"+Reset+" "+
-				Green+"r:"+fmtTokens(cacheRead)+Reset+
-				Dim+"/"+Reset+
-				Yellow+"w:"+fmtTokens(cacheCreate)+Reset)
+	if cfg.Cache.Enabled {
+		if cfg.Cache.Cumulative {
+			sTotalCache := sess.CumCR + sess.CumCC + sess.CumIT
+			if sTotalCache > 0 {
+				sHitPct := int(sess.CumCR * 100 / sTotalCache)
+				sHitColor := colorPct(100 - sHitPct)
+				parts = append(parts, Dim+"cache"+Reset+" "+
+					sHitColor+itoa(sHitPct)+"%"+Reset+Dim+"hit"+Reset+" "+
+					Green+"r:"+fmtTok(sess.CumCR)+Reset+
+					Dim+"/"+Reset+
+					Yellow+"w:"+fmtTok(sess.CumCC)+Reset)
+			}
+		} else {
+			reqTotal := cacheRead + cacheCreate + inputTokens
+			if reqTotal > 0 {
+				hitPct := int(cacheRead * 100 / reqTotal)
+				hitColor := colorPct(100 - hitPct)
+				parts = append(parts, Dim+"cache"+Reset+" "+
+					hitColor+itoa(hitPct)+"%"+Reset+Dim+"hit"+Reset+" "+
+					Green+"r:"+fmtTok(cacheRead)+Reset+
+					Dim+"/"+Reset+
+					Yellow+"w:"+fmtTok(cacheCreate)+Reset)
+			}
 		}
 	}
 
-	if cfg.CacheSavings {
+	if cfg.Cache.Enabled && cfg.Cache.Savings {
 		cr, cc := sess.CumCR, sess.CumCC
-		if !cfg.CumulativeCache {
+		if !cfg.Cache.Cumulative {
 			cr, cc = cacheRead, cacheCreate
 		}
 		if cr > 0 || cc > 0 {
@@ -206,20 +244,30 @@ func run(r io.Reader, w io.Writer) {
 		}
 	}
 
-	if cfg.Sparkline && len(sess.SparkHist) >= 2 {
-		sparkChars := []rune{'▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'}
-		var spark strings.Builder
-		for _, v := range sess.SparkHist {
-			idx := v * 7 / 100
-			if idx > 7 {
-				idx = 7
-			}
-			if idx < 0 {
-				idx = 0
-			}
-			spark.WriteRune(sparkChars[idx])
+	if cfg.Cache.Enabled && cfg.Cache.Sparkline {
+		sparkWidth := cfg.Cache.SparklineWidth
+		if sparkWidth <= 0 {
+			sparkWidth = 8
 		}
-		parts = append(parts, Green+spark.String()+Reset)
+		hist := sess.SparkHist
+		if len(hist) > sparkWidth {
+			hist = hist[len(hist)-sparkWidth:]
+		}
+		if len(hist) >= 2 {
+			sparkChars := []rune{'▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'}
+			var spark strings.Builder
+			for _, v := range hist {
+				idx := v * 7 / 100
+				if idx > 7 {
+					idx = 7
+				}
+				if idx < 0 {
+					idx = 0
+				}
+				spark.WriteRune(sparkChars[idx])
+			}
+			parts = append(parts, Green+spark.String()+Reset)
+		}
 	}
 
 	if cfg.ContextRunway && hasRemaining && ctxSize > 0 && sess.TurnCount > 0 {
@@ -241,12 +289,12 @@ func run(r io.Reader, w io.Writer) {
 		}
 	}
 
-	if input.RateLimits.FiveHour.UsedPercentage != nil {
+	if cfg.RateLimits.Enabled && input.RateLimits.FiveHour.UsedPercentage != nil {
 		rl5Int := int(*input.RateLimits.FiveHour.UsedPercentage)
 		rl5Color := colorPct(rl5Int)
 		rlStr := Dim + "5h" + Reset + rl5Color + itoa(rl5Int) + "%" + Reset
 
-		if input.RateLimits.FiveHour.ResetsAt != nil {
+		if cfg.RateLimits.ShowReset && input.RateLimits.FiveHour.ResetsAt != nil {
 			resetAt := int64(*input.RateLimits.FiveHour.ResetsAt)
 			remainSecs := int(resetAt - time.Now().Unix())
 			if remainSecs > 0 {
@@ -263,7 +311,7 @@ func run(r io.Reader, w io.Writer) {
 			}
 		}
 
-		if input.RateLimits.SevenDay.UsedPercentage != nil {
+		if cfg.RateLimits.Show7Day && input.RateLimits.SevenDay.UsedPercentage != nil {
 			rl7Int := int(*input.RateLimits.SevenDay.UsedPercentage)
 			rl7Color := colorPct(rl7Int)
 			rlStr += " " + Dim + "7d" + Reset + rl7Color + itoa(rl7Int) + "%" + Reset
@@ -272,19 +320,19 @@ func run(r io.Reader, w io.Writer) {
 		parts = append(parts, Dim+"rate"+Reset+" "+rlStr)
 	}
 
-	if linesAdded > 0 || linesRemoved > 0 {
+	if cfg.LineDeltas && (linesAdded > 0 || linesRemoved > 0) {
 		parts = append(parts, Dim+"Δ"+Reset+
 			Green+"+"+itoa64(linesAdded)+Reset+
 			Dim+"/"+Reset+
 			Red+"-"+itoa64(linesRemoved)+Reset)
 	}
 
-	if apiMS > 0 && durationMS > 0 {
+	if cfg.ApiStats.Enabled && apiMS > 0 && durationMS > 0 {
 		apiPct := int(apiMS * 100 / int64(durationMS))
 		apiSecs := apiMS / 1000
 		apiStr := Dim + "api" + Reset + " " + Blue + itoa64(apiSecs) + "s" + Reset +
 			Dim + "(" + itoa(apiPct) + "%)" + Reset
-		if cfg.TokenThroughput && totalOut > 0 && apiMS > 0 {
+		if cfg.ApiStats.Throughput && totalOut > 0 && apiMS > 0 {
 			tps := totalOut * 1000 / apiMS
 			apiStr += " " + Magenta + itoa64(tps) + "t/s" + Reset
 		}

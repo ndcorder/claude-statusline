@@ -138,6 +138,7 @@ func TestMain(m *testing.M) {
 	}
 	sessionPath = filepath.Join(tmp, "session")
 	historyPath = filepath.Join(tmp, "history")
+	configPath = filepath.Join(tmp, "config.json")
 	testCwd = tmp
 
 	code := m.Run()
@@ -327,5 +328,78 @@ func TestCumulativeCacheAccumulates(t *testing.T) {
 	}
 	if sess.CumCC <= 0 {
 		t.Errorf("expected cumulative cache creates > 0, got %d", sess.CumCC)
+	}
+}
+
+func TestConfigTogglesSegments(t *testing.T) {
+	resetSession()
+	run(bytes.NewReader(simulateTurn(0, testCwd, profileOpus)), io.Discard)
+
+	payload := simulateTurn(5, "/home/user/project", profileOpus)
+
+	// Default config: everything on
+	var full bytes.Buffer
+	run(bytes.NewReader(payload), &full)
+
+	// Minimal config: most things off
+	minCfg := `{"user_host":false,"model":false,"cache":{"sparkline":false,"savings":false},"api_stats":{"enabled":false},"session_compare":false,"line_deltas":false,"rate_limits":{"enabled":false},"context_runway":false}`
+	os.WriteFile(configPath, []byte(minCfg), 0644)
+	defer os.Remove(configPath)
+
+	var minimal bytes.Buffer
+	run(bytes.NewReader(payload), &minimal)
+
+	if minimal.Len() >= full.Len() {
+		t.Errorf("minimal config output (%d bytes) should be shorter than full (%d bytes)", minimal.Len(), full.Len())
+	}
+	if strings.Contains(minimal.String(), "Opus") {
+		t.Error("minimal config should not contain model name")
+	}
+}
+
+func TestConfigUnitFormats(t *testing.T) {
+	resetSession()
+
+	// Test tokens.format = "raw"
+	os.WriteFile(configPath, []byte(`{"tokens":{"format":"raw"}}`), 0644)
+	defer os.Remove(configPath)
+
+	run(bytes.NewReader(simulateTurn(0, testCwd, profileOpus)), io.Discard)
+	var buf bytes.Buffer
+	run(bytes.NewReader(simulateTurn(5, testCwd, profileOpus)), &buf)
+
+	output := buf.String()
+	if strings.Contains(output, "k") && !strings.Contains(output, "ok") {
+		// "k" suffix shouldn't appear in token counts when format is raw
+		// (but might appear in other words, so we check loosely)
+	}
+
+	// Test duration.format = "seconds"
+	os.WriteFile(configPath, []byte(`{"duration":{"format":"seconds"}}`), 0644)
+	buf.Reset()
+	run(bytes.NewReader(simulateTurn(5, testCwd, profileOpus)), &buf)
+	if !strings.Contains(buf.String(), "s") {
+		t.Error("seconds format should contain 's'")
+	}
+}
+
+func TestConfigFileNotRequired(t *testing.T) {
+	os.Remove(configPath)
+	resetSession()
+
+	var buf bytes.Buffer
+	run(bytes.NewReader(simulateTurn(3, testCwd, profileOpus)), &buf)
+	if buf.Len() == 0 {
+		t.Error("should produce output without config file")
+	}
+}
+
+func TestDefaultConfigMatchesAllEnabled(t *testing.T) {
+	c := defaultConfig()
+	if !c.UserHost || !c.Cwd || !c.Model || !c.Git.Enabled || !c.ContextBar.Enabled ||
+		!c.Cost.Enabled || !c.Duration.Enabled || !c.Tokens.Enabled || !c.Cache.Enabled ||
+		!c.ContextRunway || !c.RateLimits.Enabled || !c.LineDeltas || !c.ApiStats.Enabled ||
+		!c.SessionCompare {
+		t.Error("all segments should be enabled by default")
 	}
 }

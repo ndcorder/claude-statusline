@@ -53,3 +53,40 @@ func deref(p *float64) float64 {
 	}
 	return *p
 }
+
+func fmtTokensUnit(n int64, format string) string {
+	switch format {
+	case "raw":
+		return fmt.Sprintf("%d", n)
+	case "k":
+		if n >= 1000 {
+			return fmt.Sprintf("%.1fk", float64(n)/1000)
+		}
+		return fmt.Sprintf("%d", n)
+	case "M":
+		return fmt.Sprintf("%.2fM", float64(n)/1_000_000)
+	default:
+		return fmtTokens(n)
+	}
+}
+
+func fmtDuration(ms float64, format string) string {
+	totalSecs := int(ms) / 1000
+	switch format {
+	case "seconds":
+		return fmt.Sprintf("%ds", totalSecs)
+	case "minutes":
+		return fmt.Sprintf("%.1fm", float64(totalSecs)/60)
+	case "hours":
+		return fmt.Sprintf("%.2fh", float64(totalSecs)/3600)
+	default:
+		switch {
+		case totalSecs >= 3600:
+			return fmt.Sprintf("%dh%dm", totalSecs/3600, (totalSecs%3600)/60)
+		case totalSecs >= 60:
+			return fmt.Sprintf("%dm%ds", totalSecs/60, totalSecs%60)
+		default:
+			return fmt.Sprintf("%ds", totalSecs)
+		}
+	}
+}

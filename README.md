@@ -50,19 +50,55 @@ Add to your Claude Code `settings.json`:
 }
 ```
 
-## Features
+## Configuration
 
-All segments are configurable via the `Config` struct in `config.go`:
+Create `~/.claude/statusline.json` to customize. All fields are optional — unspecified fields keep their defaults (everything enabled).
 
-| Feature | Default | Description |
-|---|---|---|
-| CostVelocity | on | $/hr rate when session > 1 min |
-| TokenThroughput | on | Output tokens/sec during API calls |
-| CumulativeCache | on | Session-wide cache stats (vs per-request) |
-| ContextRunway | on | Estimated turns until context exhaustion |
-| CacheSavings | on | Dollar savings from cache hits |
-| Sparkline | on | Last 8 cache hit rates as Unicode blocks |
-| SessionCompare | on | Cost difference vs historical average |
+### Example: minimal status line
+
+```json
+{
+  "user_host": false,
+  "git": { "enabled": false },
+  "cache": { "sparkline": false, "savings": false },
+  "api_stats": { "enabled": false },
+  "session_compare": false
+}
+```
+
+### Full reference
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `user_host` | bool | `true` | Show `user@hostname` |
+| `cwd` | bool | `true` | Show working directory |
+| `model` | bool | `true` | Show model name |
+| `git.enabled` | bool | `true` | Show git info (disabling skips git calls entirely) |
+| `git.ahead_behind` | bool | `true` | Show ↑ahead ↓behind counts |
+| `git.changes` | bool | `true` | Show +added/-removed (files) |
+| `context_bar.enabled` | bool | `true` | Show context usage bar |
+| `context_bar.width` | int | `10` | Bar width in characters |
+| `cost.enabled` | bool | `true` | Show session cost |
+| `cost.precision` | int | `2` | Decimal places for cost display |
+| `cost.velocity` | bool | `true` | Show spend rate |
+| `cost.velocity_unit` | string | `"hour"` | `"hour"` or `"minute"` |
+| `duration.enabled` | bool | `true` | Show elapsed time |
+| `duration.format` | string | `"auto"` | `"auto"`, `"seconds"`, `"minutes"`, `"hours"` |
+| `tokens.enabled` | bool | `true` | Show token I/O counts |
+| `tokens.format` | string | `"auto"` | `"auto"`, `"raw"`, `"k"`, `"M"` |
+| `cache.enabled` | bool | `true` | Show cache statistics |
+| `cache.cumulative` | bool | `true` | Session-wide stats vs per-request |
+| `cache.savings` | bool | `true` | Show estimated dollar savings |
+| `cache.sparkline` | bool | `true` | Show cache hit sparkline |
+| `cache.sparkline_width` | int | `8` | Number of entries in sparkline |
+| `context_runway` | bool | `true` | Show estimated turns remaining |
+| `rate_limits.enabled` | bool | `true` | Show rate limit usage |
+| `rate_limits.show_reset` | bool | `true` | Show reset countdown |
+| `rate_limits.show_7day` | bool | `true` | Show 7-day usage |
+| `line_deltas` | bool | `true` | Show lines added/removed |
+| `api_stats.enabled` | bool | `true` | Show API time and throughput |
+| `api_stats.throughput` | bool | `true` | Show tokens/sec |
+| `session_compare` | bool | `true` | Show cost vs historical average |
 
 ## How It Works
 
