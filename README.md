@@ -108,6 +108,20 @@ Session state (cumulative cache stats, turn count, sparkline history) is tracked
 
 Git info is collected by shelling out to `git` and cached for 5 seconds inside `.git/.statusline-cache-go` to avoid repeated subprocess calls.
 
+## Performance
+
+Compared to the equivalent bash+jq implementation (Apple M4 Max):
+
+| Scenario | Bash | Go | Speedup |
+|---|---|---|---|
+| No git (warm) | 140ms | 16ms | **~9x** |
+| Git (cold cache) | 187ms | 62ms | **~3x** |
+| Git (warm cache) | 133ms | 14ms | **~9x** |
+
+The bash version spawns `jq` 13+ times, `awk`, `sed`, and multiple `git` subprocesses per render. The Go binary does a single JSON unmarshal, direct git calls with a 5-second cache, and zero external dependencies.
+
+Run `make bench` for in-process benchmarks with simulated Claude Code sessions.
+
 ## Development
 
 ```bash
