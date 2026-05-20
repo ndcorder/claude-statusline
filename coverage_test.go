@@ -362,42 +362,19 @@ type errorReader struct{}
 func (e *errorReader) Read([]byte) (int, error) { return 0, fmt.Errorf("fail") }
 
 func TestMainVersion(t *testing.T) {
-	oldArgs := os.Args
-	oldStdout := os.Stdout
-	defer func() { os.Args = oldArgs; os.Stdout = oldStdout }()
-
-	os.Args = []string{"claude-statusline", "--version"}
-	outR, outW, _ := os.Pipe()
-	os.Stdout = outW
-
-	main()
-
-	outW.Close()
-	out, _ := io.ReadAll(outR)
-	outR.Close()
-
-	if !strings.Contains(string(out), "claude-statusline") {
-		t.Errorf("--version should print program name, got %q", string(out))
+	var buf bytes.Buffer
+	cliMain([]string{"claude-statusline", "--version"}, nil, &buf)
+	if !strings.Contains(buf.String(), "claude-statusline") {
+		t.Errorf("--version should print program name, got %q", buf.String())
 	}
 }
 
 func TestMainInitConfig(t *testing.T) {
-	oldArgs := os.Args
-	oldStdout := os.Stdout
-	defer func() { os.Args = oldArgs; os.Stdout = oldStdout }()
-
-	os.Args = []string{"claude-statusline", "--init-config"}
-	outR, outW, _ := os.Pipe()
-	os.Stdout = outW
-
-	main()
-
-	outW.Close()
-	out, _ := io.ReadAll(outR)
-	outR.Close()
+	var buf bytes.Buffer
+	cliMain([]string{"claude-statusline", "--init-config"}, nil, &buf)
 
 	var c Config
-	if err := json.Unmarshal(out, &c); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &c); err != nil {
 		t.Fatalf("--init-config output is not valid JSON: %v", err)
 	}
 	if !c.UserHost || !c.Cache.Enabled {
@@ -405,29 +382,36 @@ func TestMainInitConfig(t *testing.T) {
 	}
 }
 
-func TestMainFunc(t *testing.T) {
+func TestMainEntryPoint(t *testing.T) {
 	resetSession()
+	oldArgs := os.Args
 	oldIn, oldOut := os.Stdin, os.Stdout
-	defer func() { os.Stdin = oldIn; os.Stdout = oldOut }()
+	defer func() { os.Args = oldArgs; os.Stdin = oldIn; os.Stdout = oldOut }()
 
-	pr, pw, _ := os.Pipe()
-	os.Stdin = pr
+	os.Args = []string{"claude-statusline", "--version"}
 	outR, outW, _ := os.Pipe()
 	os.Stdout = outW
-
-	go func() {
-		pw.Write(simulateTurn(3, testCwd, profileOpus))
-		pw.Close()
-	}()
-
 	main()
-
 	outW.Close()
 	out, _ := io.ReadAll(outR)
 	outR.Close()
+	if !strings.Contains(string(out), "claude-statusline") {
+		t.Errorf("main() --version failed, got %q", string(out))
+	}
+}
+
+func TestMainFunc(t *testing.T) {
+	resetSession()
+	var buf bytes.Buffer
+	cliMain(
+		[]string{"claude-statusline"},
+		bytes.NewReader(simulateTurn(3, testCwd, profileOpus)),
+		&buf,
+	)
+	out := buf.Bytes()
 
 	if len(out) == 0 {
-		t.Error("main() should produce output")
+		t.Error("cliMain should produce output")
 	}
 }
 

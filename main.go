@@ -14,16 +14,20 @@ import (
 var version = "dev"
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		fmt.Println("claude-statusline " + version)
+	cliMain(os.Args, os.Stdin, os.Stdout)
+}
+
+func cliMain(args []string, r io.Reader, w io.Writer) {
+	if len(args) > 1 && args[1] == "--version" {
+		fmt.Fprintln(w, "claude-statusline "+version)
 		return
 	}
-	if len(os.Args) > 1 && os.Args[1] == "--init-config" {
+	if len(args) > 1 && args[1] == "--init-config" {
 		data, _ := json.MarshalIndent(defaultConfig(), "", "  ")
-		fmt.Println(string(data))
+		fmt.Fprintln(w, string(data))
 		return
 	}
-	run(os.Stdin, os.Stdout)
+	run(r, w)
 }
 
 func run(r io.Reader, w io.Writer) {
