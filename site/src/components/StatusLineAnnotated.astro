@@ -3,79 +3,13 @@ import StatusLine from './StatusLine.astro';
 ---
 
 <div class="annotated-wrapper">
-  <div class="statusline-container">
-    <StatusLine />
-  </div>
-  <div class="annotations">
-    <div class="annotations-row annotations-row-1">
-      <div class="annotation" style="left: 3ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">user</span>
-      </div>
-      <div class="annotation" style="left: 13ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">cwd</span>
-      </div>
-      <div class="annotation" style="left: 28ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">model</span>
-      </div>
-      <div class="annotation" style="left: 50ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">git</span>
-      </div>
-      <div class="annotation" style="left: 72ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">context</span>
-      </div>
-      <div class="annotation" style="left: 88ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">cost</span>
-      </div>
-      <div class="annotation" style="left: 104ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">duration</span>
-      </div>
-    </div>
-    <div class="annotations-row annotations-row-2">
-      <div class="annotation" style="left: 4ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">tokens</span>
-      </div>
-      <div class="annotation" style="left: 24ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">cache</span>
-      </div>
-      <div class="annotation" style="left: 54ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">savings</span>
-      </div>
-      <div class="annotation" style="left: 69ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">sparkline</span>
-      </div>
-      <div class="annotation" style="left: 79ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">runway</span>
-      </div>
-      <div class="annotation" style="left: 91ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">rate limits</span>
-      </div>
-      <div class="annotation" style="left: 114ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">diff</span>
-      </div>
-      <div class="annotation" style="left: 127ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">api</span>
-      </div>
-      <div class="annotation" style="left: 148ch;">
-        <div class="annotation-line"></div>
-        <span class="annotation-label">vs avg</span>
-      </div>
-    </div>
-  </div>
+  <StatusLine />
+  <pre class="annotations" aria-hidden="true">
+<span class="a-ptr">↑         ↑           ↑                       ↑                     ↑                ↑                ↑</span>
+<span class="a-lbl">user      cwd         model                   git                   context          cost             duration</span>
+
+<span class="a-ptr">  ↑                  ↑                             ↑              ↑          ↑          ↑                       ↑           ↑                     ↑</span>
+<span class="a-lbl">  tokens             cache                         savings        sparkline  runway     rate limits             diff        api                   vs avg</span></pre>
 </div>
 
 <style>
@@ -83,47 +17,23 @@ import StatusLine from './StatusLine.astro';
     position: relative;
   }
 
-  .statusline-container {
-    position: relative;
-  }
-
   .annotations {
-    margin-top: 4px;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
     font-size: 12.5px;
+    line-height: 1.5;
+    color: #abb2bf;
+    overflow-x: auto;
   }
 
-  .annotations-row {
-    position: relative;
-    height: 32px;
-  }
-
-  .annotations-row-1 {
-    margin-top: 0;
-  }
-
-  .annotations-row-2 {
-    margin-top: 2px;
-  }
-
-  .annotation {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .annotation-line {
-    width: 1px;
-    height: 10px;
-    background: #abb2bf;
+  .a-ptr {
     opacity: 0.15;
   }
 
-  .annotation-label {
-    font-size: 11px;
-    color: #abb2bf;
-    opacity: 0.3;
-    white-space: nowrap;
-    margin-top: 2px;
+  .a-lbl {
+    opacity: 0.25;
+    font-size: 10.5px;
   }
 </style>

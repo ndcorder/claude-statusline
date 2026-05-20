@@ -1,0 +1,43 @@
+---
+import StatusLine from './StatusLine.astro';
+---
+
+<div class="annotated-wrapper">
+  <StatusLine />
+  <div class="legend">
+    <span class="legend-item"><span class="dot" style="background: #56b6c2;"></span>user &amp; tokens</span>
+    <span class="legend-item"><span class="dot" style="background: #e5c07b;"></span>cwd &amp; cost</span>
+    <span class="legend-item"><span class="dot" style="background: #c678dd;"></span>model &amp; throughput</span>
+    <span class="legend-item"><span class="dot" style="background: #61afef;"></span>git &amp; api</span>
+    <span class="legend-item"><span class="dot" style="background: #98c379;"></span>cache &amp; savings</span>
+    <span class="legend-item"><span class="dot" style="background: rgba(171,178,191,0.5);"></span>context &amp; rate limits</span>
+  </div>
+</div>
+
+<style>
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 20px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #6e7681;
+    white-space: nowrap;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+</style>

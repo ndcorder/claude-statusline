@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import TerminalWindow from '../components/TerminalWindow.astro';
-import StatusLineAnnotated from '../components/StatusLineAnnotated.astro';
+import StatusLine from '../components/StatusLine.astro';
 ---
 
 <Base title="claude-statusline — A feature-rich status line for Claude Code">
@@ -14,7 +14,7 @@ import StatusLineAnnotated from '../components/StatusLineAnnotated.astro';
         <p class="sub-tagline">Token stats &middot; Cache metrics &middot; Git info &middot; Cost tracking &middot; 12x faster than bash</p>
         <div class="hero-terminal">
           <TerminalWindow title="claude-statusline">
-            <StatusLineAnnotated />
+            <StatusLine />
           </TerminalWindow>
         </div>
         <div class="install-hero">
