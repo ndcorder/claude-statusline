@@ -110,17 +110,17 @@ Git info is collected by shelling out to `git` and cached for 5 seconds inside `
 
 ## Performance
 
-Compared to the equivalent bash+jq implementation (Apple M4 Max):
+Benchmarked with [hyperfine](https://github.com/sharkdp/hyperfine) against the equivalent bash+jq implementation (Apple M4 Max, 100 runs, 5 warmup):
 
-| Scenario | Bash | Go | Speedup |
+| Scenario | Bash+jq | Go | Speedup |
 |---|---|---|---|
-| No git (warm) | 140ms | 16ms | **~9x** |
-| Git (cold cache) | 187ms | 62ms | **~3x** |
-| Git (warm cache) | 133ms | 14ms | **~9x** |
+| No git | 146.9ms ± 4.9 | 11.9ms ± 0.7 | **12.3x ± 0.8** |
+| Git (warm cache) | 112.8ms ± 6.5 | 12.1ms ± 0.8 | **9.3x ± 0.8** |
+| Git (cold cache) | 145.4ms ± 4.2 | 43.1ms ± 2.3 | **3.4x ± 0.2** |
 
 The bash version spawns `jq` 13+ times, `awk`, `sed`, and multiple `git` subprocesses per render. The Go binary does a single JSON unmarshal, direct git calls with a 5-second cache, and zero external dependencies.
 
-Run `make bench` for in-process benchmarks with simulated Claude Code sessions.
+Run `make bench` for in-process benchmarks with simulated multi-turn Claude Code sessions.
 
 ## Development
 
