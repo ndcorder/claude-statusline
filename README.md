@@ -144,15 +144,31 @@ make clean          # remove binary
 
 Zero external dependencies — stdlib only.
 
-## Verifying Releases
+## Security & Trust
 
-All release binaries include [GitHub Artifact Attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations) for SLSA build provenance:
+Every release binary is cryptographically verifiable back to the source code in this repo.
+
+### Verify a downloaded binary
 
 ```bash
 gh attestation verify claude-statusline_*_darwin_arm64.tar.gz --owner ndcorder
 ```
 
-See [SECURITY.md](SECURITY.md) for details.
+This checks [GitHub Artifact Attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations) (SLSA build provenance) signed via [Sigstore](https://www.sigstore.dev/) — proving the binary was built from this repo's source, by the GitHub Actions release workflow, and hasn't been tampered with. No keys to manage; verification uses a public transparency log.
+
+### What we do
+
+| Measure | Detail |
+|---|---|
+| **Build provenance** | Every release artifact is attested with SLSA provenance via GitHub Artifact Attestations |
+| **Reproducible builds** | Built with `-trimpath` for path-independent output |
+| **SHA-256 checksums** | `checksums.txt` included in every release, also attested |
+| **Signed commits** | All commits are GPG-signed |
+| **Branch protection** | CI must pass, force pushes blocked, signed commits required |
+| **Zero dependencies** | stdlib only — no transitive supply chain risk |
+| **100% test coverage** | CI enforces full coverage on every commit |
+
+See [SECURITY.md](SECURITY.md) for the vulnerability disclosure policy.
 
 ## License
 
