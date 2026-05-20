@@ -304,14 +304,15 @@ func TestAppendHistoryOpenError(t *testing.T) {
 
 func TestAppendHistoryTruncation(t *testing.T) {
 	resetSession()
-	for i := 0; i < maxHistory+10; i++ {
+	max := cfg.Session.MaxHistory
+	for i := 0; i < max+10; i++ {
 		appendHistory(float64(i)*0.01, 1000, 5000, 1000, 5)
 	}
 
 	data, _ := os.ReadFile(historyPath)
 	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-	if len(lines) > maxHistory {
-		t.Errorf("should truncate to %d, got %d", maxHistory, len(lines))
+	if len(lines) > max {
+		t.Errorf("should truncate to %d, got %d", max, len(lines))
 	}
 }
 
@@ -359,6 +360,26 @@ func TestLoadHistoryAvgEdgeCases(t *testing.T) {
 type errorReader struct{}
 
 func (e *errorReader) Read([]byte) (int, error) { return 0, fmt.Errorf("fail") }
+
+func TestMainVersion(t *testing.T) {
+	oldArgs := os.Args
+	oldStdout := os.Stdout
+	defer func() { os.Args = oldArgs; os.Stdout = oldStdout }()
+
+	os.Args = []string{"claude-statusline", "--version"}
+	outR, outW, _ := os.Pipe()
+	os.Stdout = outW
+
+	main()
+
+	outW.Close()
+	out, _ := io.ReadAll(outR)
+	outR.Close()
+
+	if !strings.Contains(string(out), "claude-statusline") {
+		t.Errorf("--version should print program name, got %q", string(out))
+	}
+}
 
 func TestMainInitConfig(t *testing.T) {
 	oldArgs := os.Args
@@ -417,6 +438,33 @@ func TestRunReadError(t *testing.T) {
 func TestRunEmptyInput(t *testing.T) {
 	var buf bytes.Buffer
 	run(bytes.NewReader([]byte{}), &buf)
+}
+
+func TestRunInvalidJSONInput(t *testing.T) {
+	resetSession()
+	var buf bytes.Buffer
+	run(bytes.NewReader([]byte("{not valid json}")), &buf)
+	// Should not panic; warning goes to os.Stderr
+}
+
+func TestRunSessionPathDefaults(t *testing.T) {
+	// Save and clear session/history paths to exercise the
+	// "if sessionPath == ''" and "if historyPath == ''" guards in run()
+	oldSP := sessionPath
+	oldHP := historyPath
+	sessionPath = ""
+	historyPath = ""
+	defer func() { sessionPath = oldSP; historyPath = oldHP }()
+
+	var buf bytes.Buffer
+	run(bytes.NewReader(simulateTurn(3, testCwd, profileOpus)), &buf)
+	if buf.Len() == 0 {
+		t.Error("should produce output when session paths come from config defaults")
+	}
+
+	// Restore for other tests
+	sessionPath = oldSP
+	historyPath = oldHP
 }
 
 func TestRunCwdFallbackToCwd(t *testing.T) {
@@ -781,6 +829,119 @@ func TestRunEdgeConfigValues(t *testing.T) {
 	run(bytes.NewReader(simulateTurn(5, testCwd, profileOpus)), &buf)
 	if buf.Len() == 0 {
 		t.Error("should produce output with edge config values")
+	}
+}
+
+// --- config.go validate() ---
+
+func TestValidateInvalidVelocityUnit(t *testing.T) {
+	c := defaultConfig()
+	c.Cost.VelocityUnit = "bogus"
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if c.Cost.VelocityUnit != "hour" {
+		t.Errorf("expected reset to hour, got %q", c.Cost.VelocityUnit)
+	}
+	if !strings.Contains(buf.String(), "invalid velocity_unit") {
+		t.Error("should warn about invalid velocity_unit")
+	}
+}
+
+func TestValidateInvalidDurationFormat(t *testing.T) {
+	c := defaultConfig()
+	c.Duration.Format = "bogus"
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if c.Duration.Format != "auto" {
+		t.Errorf("expected reset to auto, got %q", c.Duration.Format)
+	}
+	if !strings.Contains(buf.String(), "invalid duration.format") {
+		t.Error("should warn about invalid duration format")
+	}
+}
+
+func TestValidateInvalidTokensFormat(t *testing.T) {
+	c := defaultConfig()
+	c.Tokens.Format = "bogus"
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if c.Tokens.Format != "auto" {
+		t.Errorf("expected reset to auto, got %q", c.Tokens.Format)
+	}
+	if !strings.Contains(buf.String(), "invalid tokens.format") {
+		t.Error("should warn about invalid tokens format")
+	}
+}
+
+func TestValidateNegativeGitCacheTTL(t *testing.T) {
+	c := defaultConfig()
+	c.Git.CacheTTL = -1
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if c.Git.CacheTTL != 5 {
+		t.Errorf("expected reset to 5, got %d", c.Git.CacheTTL)
+	}
+	if !strings.Contains(buf.String(), "invalid git.cache_ttl") {
+		t.Error("should warn about invalid git.cache_ttl")
+	}
+}
+
+func TestValidateInvalidSessionMaxHistory(t *testing.T) {
+	c := defaultConfig()
+	c.Session.MaxHistory = 0
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if c.Session.MaxHistory != 50 {
+		t.Errorf("expected reset to 50, got %d", c.Session.MaxHistory)
+	}
+	if !strings.Contains(buf.String(), "invalid session.max_history") {
+		t.Error("should warn about invalid session.max_history")
+	}
+}
+
+func TestValidateValidValues(t *testing.T) {
+	c := defaultConfig()
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if buf.Len() != 0 {
+		t.Errorf("default config should produce no warnings, got %q", buf.String())
+	}
+}
+
+func TestValidateAllValidEnumValues(t *testing.T) {
+	// velocity_unit: "minute" branch
+	c := defaultConfig()
+	c.Cost.VelocityUnit = "minute"
+	var buf bytes.Buffer
+	c.validate(&buf)
+	if c.Cost.VelocityUnit != "minute" {
+		t.Error("minute should be accepted")
+	}
+
+	// duration.format: each valid value
+	for _, f := range []string{"seconds", "minutes", "hours"} {
+		c = defaultConfig()
+		c.Duration.Format = f
+		buf.Reset()
+		c.validate(&buf)
+		if c.Duration.Format != f {
+			t.Errorf("%q should be accepted", f)
+		}
+	}
+
+	// tokens.format: each valid value
+	for _, f := range []string{"raw", "k", "M"} {
+		c = defaultConfig()
+		c.Tokens.Format = f
+		buf.Reset()
+		c.validate(&buf)
+		if c.Tokens.Format != f {
+			t.Errorf("%q should be accepted", f)
+		}
+	}
+
+	if buf.Len() != 0 {
+		t.Errorf("valid values should produce no warnings, got %q", buf.String())
 	}
 }
 
