@@ -144,6 +144,16 @@ make clean          # remove binary
 
 Zero external dependencies — stdlib only.
 
+## Verifying Releases
+
+All release binaries include [GitHub Artifact Attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations) for SLSA build provenance:
+
+```bash
+gh attestation verify claude-statusline_*_darwin_arm64.tar.gz --owner ndcorder
+```
+
+See [SECURITY.md](SECURITY.md) for details.
+
 ## License
 
 MIT

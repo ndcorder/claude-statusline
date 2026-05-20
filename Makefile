@@ -4,7 +4,7 @@ INSTALL_DIR := $(HOME)/.claude
 .PHONY: build install clean
 
 build:
-	go build -ldflags='-s -w' -o $(BINARY) .
+	go build -trimpath -ldflags='-s -w' -o $(BINARY) .
 
 install: build
 	cp $(BINARY) $(INSTALL_DIR)/$(BINARY)
