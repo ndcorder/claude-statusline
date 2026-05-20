@@ -41,12 +41,16 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
+            goamd64: v1
           - goos: linux
             goarch: arm64
+            goarm64: v8.0
           - goos: darwin
             goarch: arm64
+            goarm64: v8.0
           - goos: darwin
             goarch: amd64
+            goamd64: v1
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -57,6 +61,8 @@ jobs:
           CGO_ENABLED: '0'
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
+          GOAMD64: ${{ matrix.goamd64 }}
+          GOARM64: ${{ matrix.goarm64 }}
         run: go build -trimpath -ldflags='-s -w' -o local-build .
       - name: Download and extract release binary
         env:
