@@ -4,7 +4,7 @@ INSTALL_DIR := $(HOME)/.claude
 .PHONY: build install test bench verify clean
 
 build:
-	CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o $(BINARY) .
+	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w' -o $(BINARY) .
 
 install: build
 	cp $(BINARY) $(INSTALL_DIR)/$(BINARY)
@@ -26,7 +26,7 @@ verify:
 	echo "Verifying $$TAG for $${OS}/$${ARCH}..." && \
 	gh release download "$$TAG" --pattern "$$ARCHIVE" --dir "$$TMP" && \
 	tar xzf "$$TMP/$$ARCHIVE" -C "$$TMP" && \
-	CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o "$$TMP/local-build" . && \
+	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w' -o "$$TMP/local-build" . && \
 	RELEASE=$$(shasum -a 256 "$$TMP/claude-statusline" | awk '{print $$1}') && \
 	LOCAL=$$(shasum -a 256 "$$TMP/local-build" | awk '{print $$1}') && \
 	echo "Release: $$RELEASE" && \
