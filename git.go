@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const gitCacheTTL = 5 * time.Second
+
 
 type GitInfo struct {
 	Branch  string `json:"branch"`
@@ -33,7 +33,7 @@ func getGitInfo(dir string) *GitInfo {
 
 	cachePath := filepath.Join(gitDir, ".statusline-cache-go")
 	if info, err := os.Stat(cachePath); err == nil {
-		if time.Since(info.ModTime()) < gitCacheTTL {
+		if time.Since(info.ModTime()) < time.Duration(cfg.Git.CacheTTL)*time.Second {
 			if data, err := os.ReadFile(cachePath); err == nil {
 				var gi GitInfo
 				if json.Unmarshal(data, &gi) == nil {

@@ -11,7 +11,13 @@ import (
 	"time"
 )
 
+var version = "dev"
+
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Println("claude-statusline " + version)
+		return
+	}
 	if len(os.Args) > 1 && os.Args[1] == "--init-config" {
 		data, _ := json.MarshalIndent(defaultConfig(), "", "  ")
 		fmt.Println(string(data))
@@ -22,6 +28,13 @@ func main() {
 
 func run(r io.Reader, w io.Writer) {
 	cfg = loadConfig()
+	cfg.validate(os.Stderr)
+	if sessionPath == "" {
+		sessionPath = cfg.Session.Path
+	}
+	if historyPath == "" {
+		historyPath = cfg.Session.HistoryPath
+	}
 
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -29,7 +42,9 @@ func run(r io.Reader, w io.Writer) {
 	}
 
 	var input Input
-	_ = json.Unmarshal(data, &input)
+	if err := json.Unmarshal(data, &input); err != nil && len(data) > 0 {
+		fmt.Fprintf(os.Stderr, "claude-statusline: warning: input parse error: %v\n", err)
+	}
 
 	u, _ := user.Current()
 	username := u.Username
@@ -136,9 +151,6 @@ func run(r io.Reader, w io.Writer) {
 			ctxColor = Green
 		}
 		barWidth := cfg.ContextBar.Width
-		if barWidth <= 0 {
-			barWidth = 10
-		}
 		filled := usedInt * barWidth / 100
 		empty := barWidth - filled
 		bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
@@ -149,9 +161,6 @@ func run(r io.Reader, w io.Writer) {
 	if cfg.Cost.Enabled && costUSD > 0 {
 		addSep(&l1)
 		precision := cfg.Cost.Precision
-		if precision < 0 {
-			precision = 2
-		}
 		fmtStr := fmt.Sprintf("%%.%df", precision)
 		l1.WriteString(Dim + "$" + Reset + Yellow + fmt.Sprintf(fmtStr, costUSD) + Reset)
 		if cfg.Cost.Velocity && durationMS > 60000 {
@@ -221,11 +230,11 @@ func run(r io.Reader, w io.Writer) {
 			modelLower := strings.ToLower(model)
 			switch {
 			case strings.Contains(modelLower, "opus"):
-				saveRate, overheadRate = 13.50, 3.75
+				saveRate, overheadRate = cfg.Pricing.Opus.CacheReadRate, cfg.Pricing.Opus.CacheCreateRate
 			case strings.Contains(modelLower, "haiku"):
-				saveRate, overheadRate = 0.72, 0.20
+				saveRate, overheadRate = cfg.Pricing.Haiku.CacheReadRate, cfg.Pricing.Haiku.CacheCreateRate
 			default:
-				saveRate, overheadRate = 2.70, 0.75
+				saveRate, overheadRate = cfg.Pricing.Sonnet.CacheReadRate, cfg.Pricing.Sonnet.CacheCreateRate
 			}
 			netSavings := (float64(cr)*saveRate - float64(cc)*overheadRate) / 1_000_000
 			if math.Abs(netSavings) >= 0.001 {
@@ -251,9 +260,6 @@ func run(r io.Reader, w io.Writer) {
 
 	if cfg.Cache.Enabled && cfg.Cache.Sparkline {
 		sparkWidth := cfg.Cache.SparklineWidth
-		if sparkWidth <= 0 {
-			sparkWidth = 8
-		}
 		hist := sess.SparkHist
 		if len(hist) > sparkWidth {
 			hist = hist[len(hist)-sparkWidth:]

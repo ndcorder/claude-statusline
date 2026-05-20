@@ -4,7 +4,7 @@ INSTALL_DIR := $(HOME)/.claude
 .PHONY: build install test bench verify clean
 
 build:
-	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w' -o $(BINARY) .
+	CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w -X main.version=dev' -o $(BINARY) .
 
 install: build
 	cp $(BINARY) $(INSTALL_DIR)/$(BINARY)

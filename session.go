@@ -8,11 +8,9 @@ import (
 )
 
 var (
-	sessionPath = "/tmp/claude-statusline-session-go"
-	historyPath = "/tmp/claude-statusline-history"
+	sessionPath string
+	historyPath string
 )
-
-const maxHistory = 50
 
 type Session struct {
 	PrevTotalIn int64   `json:"prev_total_in"`
@@ -65,8 +63,9 @@ func (s *Session) update(totalIn int64, cacheRead, cacheCreate, inputTokens int6
 		s.CumIT += inputTokens
 		s.TurnCount++
 		s.SparkHist = append(s.SparkHist, reqHit)
-		if len(s.SparkHist) > 32 {
-			s.SparkHist = s.SparkHist[len(s.SparkHist)-8:]
+		maxStore := cfg.Cache.SparklineWidth * 4
+		if len(s.SparkHist) > maxStore {
+			s.SparkHist = s.SparkHist[len(s.SparkHist)-cfg.Cache.SparklineWidth:]
 		}
 	}
 
@@ -87,8 +86,8 @@ func appendHistory(cost, dur float64, totalIn int64, totalOut float64, turns int
 		return
 	}
 	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
-	if len(lines) > maxHistory {
-		_ = os.WriteFile(historyPath, []byte(strings.Join(lines[len(lines)-maxHistory:], "\n")+"\n"), 0644)
+	if len(lines) > cfg.Session.MaxHistory {
+		_ = os.WriteFile(historyPath, []byte(strings.Join(lines[len(lines)-cfg.Session.MaxHistory:], "\n")+"\n"), 0644)
 	}
 }
 

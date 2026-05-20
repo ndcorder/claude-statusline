@@ -8,7 +8,7 @@ builds:
       - -trimpath
       - -buildvcs=false
     ldflags:
-      - -s -w
+      - -s -w -X main.version={{.Version}}
     goos:
       - darwin
       - linux
@@ -41,3 +41,15 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+
+brews:
+  - repository:
+      owner: ndcorder
+      name: homebrew-tap
+    homepage: https://ndcorder.github.io/claude-statusline/
+    description: Feature-rich status line for Claude Code
+    license: MIT
+    install: |
+      bin.install "claude-statusline"
+    test: |
+      system bin/"claude-statusline", "--version"
