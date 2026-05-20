@@ -1,0 +1,76 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title } = Astro.props;
+---
+
+<div class="terminal-window">
+  <div class="terminal-titlebar">
+    <div class="terminal-dots">
+      <span class="dot dot-close"></span>
+      <span class="dot dot-minimize"></span>
+      <span class="dot dot-maximize"></span>
+    </div>
+    {title && <span class="terminal-title">{title}</span>}
+  </div>
+  <div class="terminal-body">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .terminal-window {
+    max-width: 720px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .terminal-titlebar {
+    background: #2d2d2d;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .terminal-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .dot-close {
+    background: #ff5f56;
+  }
+
+  .dot-minimize {
+    background: #ffbd2e;
+  }
+
+  .dot-maximize {
+    background: #27c93f;
+  }
+
+  .terminal-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #abb2bf;
+    opacity: 0.5;
+    font-size: 13px;
+  }
+
+  .terminal-body {
+    background: #1a1b26;
+    padding: 16px;
+  }
+</style>

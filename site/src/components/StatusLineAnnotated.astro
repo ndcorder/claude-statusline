@@ -1,0 +1,128 @@
+---
+import StatusLine from './StatusLine.astro';
+---
+
+<div class="annotated-wrapper">
+  <div class="statusline-container">
+    <StatusLine />
+  </div>
+  <div class="annotations">
+    <div class="annotations-row annotations-row-1">
+      <div class="annotation" style="left: 3%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">user</span>
+      </div>
+      <div class="annotation" style="left: 13%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">cwd</span>
+      </div>
+      <div class="annotation" style="left: 28%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">model</span>
+      </div>
+      <div class="annotation" style="left: 47%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">git</span>
+      </div>
+      <div class="annotation" style="left: 62%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">context</span>
+      </div>
+      <div class="annotation" style="left: 76%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">cost</span>
+      </div>
+      <div class="annotation" style="left: 90%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">duration</span>
+      </div>
+    </div>
+    <div class="annotations-row annotations-row-2">
+      <div class="annotation" style="left: 4%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">tokens</span>
+      </div>
+      <div class="annotation" style="left: 19%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">cache</span>
+      </div>
+      <div class="annotation" style="left: 35%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">savings</span>
+      </div>
+      <div class="annotation" style="left: 45%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">sparkline</span>
+      </div>
+      <div class="annotation" style="left: 54%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">runway</span>
+      </div>
+      <div class="annotation" style="left: 63%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">rate limits</span>
+      </div>
+      <div class="annotation" style="left: 76%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">diff</span>
+      </div>
+      <div class="annotation" style="left: 84%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">api</span>
+      </div>
+      <div class="annotation" style="left: 95%;">
+        <div class="annotation-line"></div>
+        <span class="annotation-label">vs avg</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .annotated-wrapper {
+    position: relative;
+  }
+
+  .statusline-container {
+    position: relative;
+  }
+
+  .annotations {
+    margin-top: 4px;
+  }
+
+  .annotations-row {
+    position: relative;
+    height: 32px;
+  }
+
+  .annotations-row-1 {
+    margin-top: 0;
+  }
+
+  .annotations-row-2 {
+    margin-top: 2px;
+  }
+
+  .annotation {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .annotation-line {
+    width: 1px;
+    height: 10px;
+    background: #abb2bf;
+    opacity: 0.15;
+  }
+
+  .annotation-label {
+    font-size: 11px;
+    color: #abb2bf;
+    opacity: 0.3;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+</style>

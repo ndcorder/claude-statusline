@@ -1,0 +1,705 @@
+---
+import Base from '../layouts/Base.astro';
+import TerminalWindow from '../components/TerminalWindow.astro';
+import StatusLineAnnotated from '../components/StatusLineAnnotated.astro';
+---
+
+<Base title="claude-statusline — A feature-rich status line for Claude Code">
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <h1 class="hero-title"><span class="prompt">$</span> claude-statusline</h1>
+        <p class="tagline">A feature-rich status line for Claude Code</p>
+        <p class="sub-tagline">Token stats &middot; Cache metrics &middot; Git info &middot; Cost tracking &middot; 12x faster than bash</p>
+        <div class="hero-terminal">
+          <TerminalWindow title="claude-statusline">
+            <StatusLineAnnotated />
+          </TerminalWindow>
+        </div>
+        <div class="install-hero">
+          <code class="install-cmd">brew install ndcorder/tap/claude-statusline</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <div class="container">
+        <h2 class="section-heading">Everything at a glance</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-icon">&#x2195;</span>
+            <h3>Token I/O</h3>
+            <p>Real-time input/output token counts with automatic unit scaling</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x26A1;</span>
+            <h3>Cache Metrics</h3>
+            <p>Hit rate, read/write breakdown, cumulative session stats</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x24;</span>
+            <h3>Cost Tracking</h3>
+            <p>Session cost with hourly velocity and per-model pricing</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x2387;</span>
+            <h3>Git Integration</h3>
+            <p>Branch, ahead/behind, file changes, diff stats with caching</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x23F3;</span>
+            <h3>Context Runway</h3>
+            <p>Estimated turns remaining before context compaction</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x1F6A6;</span>
+            <h3>Rate Limits</h3>
+            <p>5-hour and 7-day usage with reset countdown timers</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x1F4B0;</span>
+            <h3>Cache Savings</h3>
+            <p>Dollar savings from prompt caching vs. uncached requests</p>
+          </div>
+          <div class="feature-card">
+            <span class="feature-icon">&#x1F680;</span>
+            <h3>API Throughput</h3>
+            <p>API time percentage and tokens-per-second throughput</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Switch -->
+    <section class="why-switch">
+      <div class="container">
+        <h2 class="section-heading">Why switch from the default?</h2>
+        <div class="comparison">
+          <div class="comparison-col comparison-default">
+            <h3 class="comparison-heading">Default status line</h3>
+            <ul>
+              <li>Basic token count</li>
+              <li>No cache visibility</li>
+              <li>No cost tracking</li>
+              <li>No git awareness</li>
+              <li>No configurability</li>
+              <li>No session history</li>
+            </ul>
+          </div>
+          <div class="comparison-col comparison-ours">
+            <h3 class="comparison-heading">claude-statusline</h3>
+            <ul>
+              <li>Full token I/O with sparkline history</li>
+              <li>Cache hit rate, savings, read/write breakdown</li>
+              <li>Session cost with hourly velocity</li>
+              <li>Branch, ahead/behind, diff stats, file changes</li>
+              <li>Every segment independently toggleable</li>
+              <li>Cross-session comparison and history</li>
+            </ul>
+          </div>
+        </div>
+        <div class="selling-points">
+          <div class="selling-point">
+            <strong>Fully configurable</strong>
+            <span>Every segment toggleable via JSON</span>
+          </div>
+          <div class="selling-point">
+            <strong>Zero dependencies</strong>
+            <span>stdlib only &mdash; no supply chain risk</span>
+          </div>
+          <div class="selling-point">
+            <strong>12x faster</strong>
+            <span>Single binary vs. bash+jq subprocess chains</span>
+          </div>
+          <div class="selling-point">
+            <strong>100% test coverage</strong>
+            <span>Enforced in CI on every push</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="install">
+      <div class="container">
+        <h2 class="section-heading">Install</h2>
+        <div class="install-methods">
+          <div class="install-method">
+            <h3>Homebrew</h3>
+            <pre><code>brew install ndcorder/tap/claude-statusline</code></pre>
+          </div>
+          <div class="install-method">
+            <h3>Go</h3>
+            <pre><code>go install github.com/ndcorder/claude-statusline@latest
+cp $(go env GOPATH)/bin/claude-statusline ~/.claude/</code></pre>
+          </div>
+          <div class="install-method">
+            <h3>Source</h3>
+            <pre><code>git clone https://github.com/ndcorder/claude-statusline.git
+cd claude-statusline
+make install</code></pre>
+          </div>
+        </div>
+        <div class="install-method">
+          <h3>Configure Claude Code</h3>
+          <p class="install-desc">Add to your Claude Code <code>settings.json</code>:</p>
+          <pre><code>{`{
+  "statusLine": {
+    "enabled": true,
+    "command": "~/.claude/claude-statusline"
+  }
+}`}</code></pre>
+        </div>
+        <p class="install-note">Customize with <code>claude-statusline --init-config &gt; ~/.claude/statusline.json</code></p>
+      </div>
+    </section>
+
+    <!-- Configuration -->
+    <section class="config">
+      <div class="container">
+        <h2 class="section-heading">Fully configurable</h2>
+        <p class="section-desc">Every segment is independently toggleable. Pricing rates, cache TTL, session paths &mdash; all configurable.</p>
+        <div class="config-example">
+          <h3>Example: minimal status line</h3>
+          <pre><code>{`{
+  "user_host": false,
+  "git": { "enabled": false },
+  "cache": { "sparkline": false, "savings": false },
+  "api_stats": { "enabled": false },
+  "session_compare": false
+}`}</code></pre>
+        </div>
+        <p class="config-link">
+          <a href="https://github.com/ndcorder/claude-statusline#configuration">See the full configuration reference &rarr;</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Performance -->
+    <section class="performance">
+      <div class="container">
+        <h2 class="section-heading">Fast enough to forget it's there</h2>
+        <div class="bench-table-wrapper">
+          <table class="bench-table">
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Bash+jq</th>
+                <th>Go</th>
+                <th>Speedup</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>No git</td>
+                <td>146.9ms &plusmn; 4.9</td>
+                <td class="highlight">11.9ms &plusmn; 0.7</td>
+                <td class="speedup">12.3x</td>
+              </tr>
+              <tr>
+                <td>Git (warm cache)</td>
+                <td>112.8ms &plusmn; 6.5</td>
+                <td class="highlight">12.1ms &plusmn; 0.8</td>
+                <td class="speedup">9.3x</td>
+              </tr>
+              <tr>
+                <td>Git (cold cache)</td>
+                <td>145.4ms &plusmn; 4.2</td>
+                <td class="highlight">43.1ms &plusmn; 2.3</td>
+                <td class="speedup">3.4x</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="bench-note">Single binary, zero dependencies, single JSON unmarshal, 5-second git cache. Benchmarked on Apple M4 Max with <a href="https://github.com/sharkdp/hyperfine">hyperfine</a> (100 runs, 5 warmup).</p>
+      </div>
+    </section>
+
+    <!-- Trust -->
+    <section class="trust">
+      <div class="container">
+        <h2 class="section-heading">Security you can verify</h2>
+        <div class="trust-grid">
+          <div class="trust-card">
+            <h3>Zero Dependencies</h3>
+            <p>stdlib only &mdash; no third-party code in your path</p>
+          </div>
+          <div class="trust-card">
+            <h3>Reproducible Builds</h3>
+            <p>CI independently rebuilds and checksum-compares every release</p>
+          </div>
+          <div class="trust-card">
+            <h3>SLSA Provenance</h3>
+            <p>GitHub Artifact Attestations via Sigstore on all binaries</p>
+          </div>
+          <div class="trust-card">
+            <h3>100% Coverage</h3>
+            <p>Statement coverage enforced in CI on every push</p>
+          </div>
+        </div>
+        <p class="trust-link">
+          <a href="https://github.com/ndcorder/claude-statusline/blob/master/SECURITY.md">Read the full security policy &rarr;</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <p>MIT License &middot; Built by <a href="https://github.com/ndcorder">ndcorder</a> &middot; <a href="https://github.com/ndcorder/claude-statusline">GitHub</a></p>
+      </div>
+    </footer>
+  </main>
+</Base>
+
+<style>
+  /* Layout */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section {
+    padding: 96px 0;
+  }
+
+  .section-heading {
+    font-size: 30px;
+    font-weight: 700;
+    color: #f0f6fc;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .section-desc {
+    font-size: 15px;
+    color: #8b949e;
+    text-align: center;
+    margin-bottom: 32px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Links */
+  a {
+    color: #58a6ff;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Hero */
+  .hero {
+    padding-top: 120px;
+    padding-bottom: 80px;
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    color: #f0f6fc;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .prompt {
+    color: #98c379;
+    opacity: 0.7;
+  }
+
+  .tagline {
+    font-size: 18px;
+    color: #8b949e;
+    margin-bottom: 8px;
+  }
+
+  .sub-tagline {
+    font-size: 14px;
+    color: #6e7681;
+    margin-bottom: 48px;
+  }
+
+  .hero-terminal {
+    margin-bottom: 40px;
+  }
+
+  .install-hero {
+    display: inline-block;
+  }
+
+  .install-cmd {
+    display: inline-block;
+    background: #161b22;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    color: #e6edf3;
+    user-select: all;
+  }
+
+  /* Features */
+  .features {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .feature-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 24px 20px;
+    transition: border-color 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .feature-icon {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .feature-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 6px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: #8b949e;
+    line-height: 1.5;
+  }
+
+  /* Why Switch */
+  .why-switch {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .comparison-col {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 28px 24px;
+  }
+
+  .comparison-heading {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .comparison-default .comparison-heading {
+    color: #8b949e;
+  }
+
+  .comparison-ours .comparison-heading {
+    color: #98c379;
+  }
+
+  .comparison-ours {
+    border-color: rgba(152, 195, 121, 0.15);
+  }
+
+  .comparison-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .comparison-default li {
+    font-size: 14px;
+    color: #6e7681;
+  }
+
+  .comparison-default li::before {
+    content: '\2013  ';
+    color: #484f58;
+  }
+
+  .comparison-ours li {
+    font-size: 14px;
+    color: #e6edf3;
+  }
+
+  .comparison-ours li::before {
+    content: '\2713  ';
+    color: #98c379;
+  }
+
+  .selling-points {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .selling-point {
+    text-align: center;
+    padding: 16px 12px;
+  }
+
+  .selling-point strong {
+    display: block;
+    font-size: 14px;
+    color: #e6edf3;
+    margin-bottom: 4px;
+  }
+
+  .selling-point span {
+    font-size: 13px;
+    color: #6e7681;
+  }
+
+  /* Install */
+  .install {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .install-methods {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .install-method {
+    margin-bottom: 24px;
+  }
+
+  .install-method h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 12px;
+  }
+
+  .install-desc {
+    font-size: 14px;
+    color: #8b949e;
+    margin-bottom: 12px;
+  }
+
+  .install-desc code {
+    color: #e6edf3;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  pre {
+    background: #161b22;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #e6edf3;
+  }
+
+  .install-note {
+    font-size: 14px;
+    color: #8b949e;
+    text-align: center;
+  }
+
+  .install-note code {
+    color: #e6edf3;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  /* Config */
+  .config {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .config-example {
+    max-width: 520px;
+    margin: 0 auto 24px;
+  }
+
+  .config-example h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #8b949e;
+    margin-bottom: 12px;
+  }
+
+  .config-link {
+    text-align: center;
+    font-size: 15px;
+  }
+
+  /* Performance */
+  .performance {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .bench-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  .bench-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .bench-table th {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #8b949e;
+    font-weight: 400;
+    font-size: 13px;
+  }
+
+  .bench-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #8b949e;
+  }
+
+  .bench-table .highlight {
+    color: #98c379;
+    font-weight: 700;
+  }
+
+  .bench-table .speedup {
+    color: #e5c07b;
+    font-weight: 700;
+  }
+
+  .bench-note {
+    font-size: 13px;
+    color: #6e7681;
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Trust */
+  .trust {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .trust-card {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 28px 16px;
+  }
+
+  .trust-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 8px;
+  }
+
+  .trust-card p {
+    font-size: 13px;
+    color: #8b949e;
+    line-height: 1.5;
+  }
+
+  .trust-link {
+    text-align: center;
+    font-size: 15px;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 40px 0;
+  }
+
+  .footer p {
+    text-align: center;
+    font-size: 13px;
+    color: #6e7681;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .feature-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .comparison {
+      grid-template-columns: 1fr;
+    }
+
+    .selling-points {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .install-methods {
+      grid-template-columns: 1fr;
+    }
+
+    .trust-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    section {
+      padding: 64px 0;
+    }
+
+    .hero {
+      padding-top: 80px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .selling-points {
+      grid-template-columns: 1fr;
+    }
+
+    .trust-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
