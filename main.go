@@ -12,6 +12,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--init-config" {
+		data, _ := json.MarshalIndent(defaultConfig(), "", "  ")
+		fmt.Println(string(data))
+		return
+	}
 	run(os.Stdin, os.Stdout)
 }
 

@@ -360,6 +360,30 @@ type errorReader struct{}
 
 func (e *errorReader) Read([]byte) (int, error) { return 0, fmt.Errorf("fail") }
 
+func TestMainInitConfig(t *testing.T) {
+	oldArgs := os.Args
+	oldStdout := os.Stdout
+	defer func() { os.Args = oldArgs; os.Stdout = oldStdout }()
+
+	os.Args = []string{"claude-statusline", "--init-config"}
+	outR, outW, _ := os.Pipe()
+	os.Stdout = outW
+
+	main()
+
+	outW.Close()
+	out, _ := io.ReadAll(outR)
+	outR.Close()
+
+	var c Config
+	if err := json.Unmarshal(out, &c); err != nil {
+		t.Fatalf("--init-config output is not valid JSON: %v", err)
+	}
+	if !c.UserHost || !c.Cache.Enabled {
+		t.Error("should output default config with all features enabled")
+	}
+}
+
 func TestMainFunc(t *testing.T) {
 	resetSession()
 	oldIn, oldOut := os.Stdin, os.Stdout

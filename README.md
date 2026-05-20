@@ -15,26 +15,28 @@ cyan@host ~/project | Opus 4.6 (1M context) | main ↑2 +15/-3 (2f) | ███�
 
 ## Install
 
+### Pre-built binaries
+
+Download from [Releases](https://github.com/ndcorder/claude-statusline/releases) and copy to `~/.claude/`:
+
+```bash
+# macOS (Apple Silicon)
+curl -sL https://github.com/ndcorder/claude-statusline/releases/latest/download/claude-statusline_$(curl -s https://api.github.com/repos/ndcorder/claude-statusline/releases/latest | grep tag_name | cut -d'"' -f4 | tr -d v)_darwin_arm64.tar.gz | tar xz -C ~/.claude/ claude-statusline
+```
+
+### With `go install`
+
+```bash
+go install github.com/ndcorder/claude-statusline@latest
+cp $(go env GOPATH)/bin/claude-statusline ~/.claude/
+```
+
 ### From source
 
 ```bash
 git clone https://github.com/ndcorder/claude-statusline.git
 cd claude-statusline
 make install
-```
-
-This builds the binary and copies it to `~/.claude/claude-statusline`.
-
-### With `go install`
-
-```bash
-go install github.com/ndcorder/claude-statusline@latest
-```
-
-Then copy the binary to `~/.claude/`:
-
-```bash
-cp $(go env GOPATH)/bin/claude-statusline ~/.claude/
 ```
 
 ## Configure Claude Code
@@ -99,6 +101,14 @@ Create `~/.claude/statusline.json` to customize. All fields are optional — uns
 | `api_stats.enabled` | bool | `true` | Show API time and throughput |
 | `api_stats.throughput` | bool | `true` | Show tokens/sec |
 | `session_compare` | bool | `true` | Show cost vs historical average |
+
+### Generate default config
+
+```bash
+claude-statusline --init-config > ~/.claude/statusline.json
+```
+
+Then edit the file to disable or customize specific segments.
 
 ## How It Works
 
