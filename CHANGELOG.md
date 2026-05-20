@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Sparkline storage cap is now 4× the display width instead of hardcoded 32
 - Malformed config JSON now produces a stderr warning instead of silent failure
 - Invalid JSON on stdin now produces a stderr warning instead of silent failure
+- Refactored `main()` to delegate to `cliMain()` for cross-platform testability
 
 ## [0.5.2] - 2026-05-20
 
