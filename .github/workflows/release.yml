@@ -32,3 +32,50 @@ jobs:
             dist/*.tar.gz
             dist/*.zip
             dist/*checksums.txt
+
+  verify-reproducibility:
+    needs: release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Rebuild from source
+        env:
+          CGO_ENABLED: '0'
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -trimpath -ldflags='-s -w' -o local-build .
+      - name: Download and extract release binary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          EXT=tar.gz
+          [ "${{ matrix.goos }}" = "windows" ] && EXT=zip
+          ARCHIVE="claude-statusline_${TAG#v}_${{ matrix.goos }}_${{ matrix.goarch }}.${EXT}"
+          gh release download "$TAG" --pattern "$ARCHIVE"
+          tar xzf "$ARCHIVE"
+      - name: Verify byte-identical
+        run: |
+          RELEASE=$(sha256sum claude-statusline | awk '{print $1}')
+          LOCAL=$(sha256sum local-build | awk '{print $1}')
+          echo "Release: $RELEASE"
+          echo "Local:   $LOCAL"
+          if [ "$RELEASE" != "$LOCAL" ]; then
+            echo "::error::Reproducibility check FAILED for ${{ matrix.goos }}/${{ matrix.goarch }}"
+            exit 1
+          fi
+          echo "✓ Reproducible: ${{ matrix.goos }}/${{ matrix.goarch }}"
