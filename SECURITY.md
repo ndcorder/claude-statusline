@@ -37,7 +37,7 @@ Check out the tagged release and build with the same flags CI uses:
 ```bash
 git clone https://github.com/ndcorder/claude-statusline.git
 cd claude-statusline
-git checkout v0.4.0  # or any release tag
+git checkout v1.0.0  # or any release tag
 make build
 ```
 

@@ -1,6 +1,12 @@
 # claude-statusline
 
+[![GitHub release](https://img.shields.io/github/v/release/ndcorder/claude-statusline)](https://github.com/ndcorder/claude-statusline/releases)
+[![CI](https://github.com/ndcorder/claude-statusline/actions/workflows/ci.yml/badge.svg)](https://github.com/ndcorder/claude-statusline/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A feature-rich status line for [Claude Code](https://claude.ai/code) with token stats, cache metrics, git info, and cost tracking.
+
+**[Website](https://ndcorder.github.io/claude-statusline/)** · **[Changelog](CHANGELOG.md)** · **[Contributing](CONTRIBUTING.md)**
 
 ## Screenshot
 
@@ -14,6 +20,12 @@ cyan@host ~/project | Opus 4.6 (1M context) | main ↑2 +15/-3 (2f) | ███�
 **Line 2:** token I/O, cumulative cache hit rate & savings, cache hit sparkline, estimated turns remaining, rate limit usage, line deltas, API throughput, cost vs historical average
 
 ## Install
+
+### Homebrew
+
+```bash
+brew install ndcorder/tap/claude-statusline
+```
 
 ### Pre-built binaries
 
@@ -78,6 +90,7 @@ Create `~/.claude/statusline.json` to customize. All fields are optional — uns
 | `git.enabled` | bool | `true` | Show git info (disabling skips git calls entirely) |
 | `git.ahead_behind` | bool | `true` | Show ↑ahead ↓behind counts |
 | `git.changes` | bool | `true` | Show +added/-removed (files) |
+| `git.cache_ttl` | int | `5` | Git cache TTL in seconds (0 = always refresh) |
 | `context_bar.enabled` | bool | `true` | Show context usage bar |
 | `context_bar.width` | int | `10` | Bar width in characters |
 | `cost.enabled` | bool | `true` | Show session cost |
@@ -101,6 +114,17 @@ Create `~/.claude/statusline.json` to customize. All fields are optional — uns
 | `api_stats.enabled` | bool | `true` | Show API time and throughput |
 | `api_stats.throughput` | bool | `true` | Show tokens/sec |
 | `session_compare` | bool | `true` | Show cost vs historical average |
+| `pricing.opus.cache_read_rate` | float | `13.50` | Opus cache read rate per 1M tokens |
+| `pricing.opus.cache_create_rate` | float | `3.75` | Opus cache create rate per 1M tokens |
+| `pricing.sonnet.cache_read_rate` | float | `2.70` | Sonnet cache read rate per 1M tokens |
+| `pricing.sonnet.cache_create_rate` | float | `0.75` | Sonnet cache create rate per 1M tokens |
+| `pricing.haiku.cache_read_rate` | float | `0.72` | Haiku cache read rate per 1M tokens |
+| `pricing.haiku.cache_create_rate` | float | `0.20` | Haiku cache create rate per 1M tokens |
+| `session.path` | string | `os.TempDir()/...` | Session state file path |
+| `session.history_path` | string | `os.TempDir()/...` | History file path |
+| `session.max_history` | int | `50` | Maximum history entries |
+
+Invalid config values produce warnings on stderr and fall back to defaults.
 
 ### Generate default config
 
@@ -114,9 +138,9 @@ Then edit the file to disable or customize specific segments.
 
 Claude Code pipes a JSON payload to stdin on each prompt. The binary parses it, computes derived metrics, and prints two ANSI-colored lines to stdout.
 
-Session state (cumulative cache stats, turn count, sparkline history) is tracked in `/tmp/claude-statusline-session-go`. A new session is detected when `total_input_tokens` decreases — indicating context compaction or a new conversation.
+Session state (cumulative cache stats, turn count, sparkline history) is tracked in a temp file (configurable via `session.path`). A new session is detected when `total_input_tokens` decreases — indicating context compaction or a new conversation.
 
-Git info is collected by shelling out to `git` and cached for 5 seconds inside `.git/.statusline-cache-go` to avoid repeated subprocess calls.
+Git info is collected by shelling out to `git` and cached inside `.git/.statusline-cache-go` with a configurable TTL (default 5 seconds) to avoid repeated subprocess calls.
 
 ## Performance
 
@@ -142,7 +166,12 @@ make install        # build + copy to ~/.claude/
 make clean          # remove binary
 ```
 
-Zero external dependencies — stdlib only.
+```bash
+claude-statusline --version      # show version
+claude-statusline --init-config  # dump default config as JSON
+```
+
+Zero external dependencies — stdlib only. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## Security & Trust
 
