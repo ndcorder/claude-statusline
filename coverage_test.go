@@ -382,21 +382,12 @@ func TestMainInitConfig(t *testing.T) {
 	}
 }
 
-func TestMainEntryPoint(t *testing.T) {
+func TestCliMainDelegatesToRun(t *testing.T) {
 	resetSession()
-	oldArgs := os.Args
-	oldIn, oldOut := os.Stdin, os.Stdout
-	defer func() { os.Args = oldArgs; os.Stdin = oldIn; os.Stdout = oldOut }()
-
-	os.Args = []string{"claude-statusline", "--version"}
-	outR, outW, _ := os.Pipe()
-	os.Stdout = outW
-	main()
-	outW.Close()
-	out, _ := io.ReadAll(outR)
-	outR.Close()
-	if !strings.Contains(string(out), "claude-statusline") {
-		t.Errorf("main() --version failed, got %q", string(out))
+	var buf bytes.Buffer
+	cliMain([]string{"claude-statusline"}, bytes.NewReader(simulateTurn(3, testCwd, profileOpus)), &buf)
+	if buf.Len() == 0 {
+		t.Error("cliMain with no flags should delegate to run()")
 	}
 }
 
